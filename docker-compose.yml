@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: marriott_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-marriott_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-marriott_password}
+      POSTGRES_DB: ${DB_NAME:-marriott_reservation}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-marriott_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: marriott_api
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-marriott_user}
+      DB_PASSWORD: ${DB_PASSWORD:-marriott_password}
+      DB_NAME: ${DB_NAME:-marriott_reservation}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: marriott_web
+    environment:
+      REACT_APP_API_URL: http://backend:5000/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+    command: npm start
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: marriott_network

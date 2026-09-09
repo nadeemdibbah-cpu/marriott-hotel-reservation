@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# Production
+build/
+dist/
+.next/
+out/
+
+# Misc
+.DS_Store
+*.pem
+*.log
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+
+# Yarn
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# IDE
+.vscode
+.idea
+*.sublime-workspace
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Docker
+.dockerignore
